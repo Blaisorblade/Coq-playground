@@ -1,5 +1,5 @@
 (*
-  Translating https://bentnib.org/unembedding.html in Coq. With some care for the partial bits the partial bits.
+  Translating https://bentnib.org/unembedding.html in Coq. With some care for the partial bits.
 *)
 (* Required opam packages: coq-stdpp and coq-autosubst. *)
 From Coq.Program Require Import Program.
@@ -15,8 +15,8 @@ Inductive DBTerm :=
 | Lam (b : DBTerm)
 | App (f : DBTerm) (a : DBTerm).
 
-Definition Sub t := var → t.
-(* Equals Sub DBTerm, but that's accidental. *)
+Definition Env t := var → t.
+(* Equals Env DBTerm, but that's accidental. *)
 Definition DB := var → DBTerm.
 
 (* We reuse a tiny bit of Autosubst here. *)
@@ -28,18 +28,15 @@ Instance idsDB: Ids DB := λ x, (* [x]: input to the substitution. *)
 
 Definition hLam (f : DB → DB) : DB := λ i,
   let i' := S i in
-  (* let v := λ j, Var (j - i') in *)
-  (* Generalized version. Beware the two are only equivalent for the right instance! *)
-  let v := ren (λ j, j - i') : DB in
+  let v := λ j, Var (j - i') in
   Lam (f v i').
 
-Lemma unshift_equiv i' : (ren (λ j, j - i') : DB) = λ j, Var (j - i'). done. Qed.
 Definition lift2 (con : DBTerm → DBTerm → DBTerm) : DB → DB → DB := λ a1 a2 i,
   con (a1 i) (a2 i).
 
-Definition hApp := lift2 App.
-Definition hApp' (f a : DB) : DB := λ i,
-  App (f i) (a i).
+(* Inline [lift2] to avoid complicating proofs. *)
+Definition hApp := Eval cbv in lift2 App.
+Definition hApp' (f a : DB) : DB := λ i, App (f i) (a i).
 Goal hApp = hApp'. done. Qed.
 
 Module UnembeddingGeneral.
@@ -51,6 +48,7 @@ Class UntypedLambda (exp : Type) := {
 Definition Hoas := ∀ exp, UntypedLambda exp → exp.
 Example ex1 : Hoas := λ exp hU,
   lam (λ x, lam (λ y, app x y)).
+Example ex1DB : DBTerm := Lam (Lam (App (Var 1) (Var 0))).
 
 Definition numeral (n : nat): Hoas := λ exp hU,
   let body := fix body s z n :=
@@ -67,18 +65,14 @@ Instance untypedSize : UntypedLambda nat := {
 Definition size (t : Hoas) : nat := t nat untypedSize.
 
 (* i and j are de Bruijn levels! *)
-Program Instance untypedDB : UntypedLambda DB := {
+Instance untypedDB : UntypedLambda DB := {
   lam := hLam;
   app := hApp;
 }.
 
 Definition toTerm (t : Hoas) : DBTerm :=
   t _ untypedDB 0.
-Eval cbv in toTerm ex1.
-
-Section foo.
-Let x := ids.
-End foo.
+Goal toTerm ex1 = ex1DB. done. Qed.
 
 (* Now we're getting to the real deal. *)
 (* Type of open Hoas terms.
@@ -88,12 +82,11 @@ Definition Hoas' :=
   ∀ exp, UntypedLambda exp → (var → exp) → exp.
 Definition ex1' : Hoas' := λ exp hU s, ex1 exp hU.
 
-Program Definition toTerm' (t : Hoas') : DBTerm :=
+Definition toTerm' (t : Hoas') : DBTerm :=
   t _ untypedDB ids 0.
-Check toTerm' ex1'.
 
-Definition testToTerm'Ex1' := Eval cbv in toTerm' ex1'.
-Print testToTerm'Ex1'.
+Definition testToTerm'Ex1' := toTerm' ex1'.
+Goal testToTerm'Ex1' = ex1DB. done. Qed.
 
 Program Definition fromTermGo `{UntypedLambda exp} : DBTerm → (var → exp) → exp := fix F t env :=
   match t with
@@ -107,7 +100,7 @@ Definition fromTerm' (t : DBTerm) : Hoas' :=
   λ exp hU, fromTermGo t.
 
 Eval cbv in fromTerm' testToTerm'Ex1'.
-Example roundTripEx1 : ex1' = fromTerm' testToTerm'Ex1'. reflexivity. Qed.
+Example roundTripEx1 : ex1' = fromTerm' testToTerm'Ex1'. done. Qed.
 
 Definition isUnshiftP i s := ∀ m n, s m n = Var (m + n - i).
 Lemma matching s1 s2 i1 i2
@@ -119,10 +112,9 @@ Lemma fromTermGo_respects_unshifts t s1 s2 i1 i2
   (Hu1: isUnshiftP i1 s1) (Hu2 : isUnshiftP i2 s2):
   fromTermGo t s1 i1 = fromTermGo t s2 i2.
 Proof.
-  revert s1 s2 i1 i2 Hu1 Hu2.
-  induction t; simpl; intros; first exact: matching.
-  all: lazy [hLam hApp]; f_equal; eauto 2.
-  apply IHt => ??; rewrite /scons; case_match; subst => //=.
+  elim: t s1 s2 i1 i2 Hu1 Hu2 => /= [n | b IHb |f ? a ?] s1 s2 i1 i2 Hu1 Hu2;
+    first exact: matching; lazy [hLam hApp]; f_equal; [| by eauto 2 ..].
+  apply IHb => ??; rewrite /scons; case_match; subst => //=.
 Qed.
 
 Lemma fromTermGo_respects_unshift1 t :
@@ -136,10 +128,10 @@ Qed.
 
 Lemma fromTermGoId t : fromTermGo t ids 0 = t.
 Proof.
-  induction t; simpl; lazy [hLam hApp]; f_equal => //.
+  elim: t => /= [^~t]; lazy [hLam hApp]; f_equal => //.
   - (* lazy [ids idsDB]. *)
-    by rewrite -[in Var _](plusnO n).
-  - rewrite fromTermGo_respects_unshift1. exact IHt.
+    by rewrite -[in Var _](plusnO nt).
+  - by rewrite fromTermGo_respects_unshift1.
 Qed.
 
 Lemma roundTrip (t : DBTerm) : toTerm' (fromTerm' t) = t.
@@ -149,7 +141,7 @@ End UnembeddingGeneral.
 
 Module specialized.
 
-Definition Hoas := Sub DB → DB.
+Definition Hoas := Env DB → DB.
 Goal Hoas = ((var → var → DBTerm) → var → DBTerm). done. Qed.
 
 Definition hoasToDB (t : Hoas): DBTerm := t ids 0.
