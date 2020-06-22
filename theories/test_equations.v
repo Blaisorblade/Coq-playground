@@ -31,8 +31,9 @@ From Coq.Program Require Export Basics Syntax.
 (* From stdpp Require Export base. *)
 Set Transparent Obligations.
 (* Global Generalizable All Variables. *)
-Derive NoConfusion EqDec for positive.
-Fail Instance : EqDec positive := _.
+Derive NoConfusion for positive.
+Derive EqDec for positive.
+Instance : EqDec positive := _.
 
 (* Derive EqDec for positive. *)
 
