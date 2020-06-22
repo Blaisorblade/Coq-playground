@@ -5,8 +5,16 @@ infrastructure.
 The operational semantics implements the Iris infrastructure for languages,
 using contextual small-step operational semantics.
 *)
-From stdpp Require Export strings.
+Require Import Program.
+From Equations Require Import Equations.
 From Autosubst Require Export Autosubst.
+(* Require Import ssreflect. *)
+From stdpp Require Export strings.
+From iris.algebra Require Import base.
+
+Ltac eqn_simpl := program_simplify; Equations.CoreTactics.equations_simpl;
+                              try program_solve_wf.
+
 (** * ssreflect postfix notation for the successor and predecessor functions.
 SSreflect uses "pred" for the generic predicate type, and S as a local bound
 variable.*)
@@ -68,16 +76,10 @@ Inductive kty : nat → Type :=
 with kind : nat → Type :=
   | kintv (L U : kty 0) : kind 0
   | kpi {n} (S : kty 0) (K : kind n) : kind n.+1.
-Require Import ssreflect.
 
-Require Import Program.
-From Equations Require Import Equations.
 Set Transparent Obligations.
 
-(* From iris.algebra Require Import base. *)
 
-Ltac eqn_simpl := program_simplify; Equations.CoreTactics.equations_simpl;
-                              try program_solve_wf.
 
 (* Equations neg (b : bool) : bool :=
 neg true := false ;
@@ -121,8 +123,7 @@ Equations kty_eq_dec n (T1 T2 : kty n) : Decision (T1 = T2) by struct T1 := {
     let _ : ∀ n, EqDecision (kind n) := kind_eq_dec in
     cast_if_and (decide (l1 = l2)) (decide (K1 = K2));
   kty_eq_dec _ _ _ := right _
-}
-with kind_eq_dec n (K1 K2 : kind n): Decision (K1 = K2) by struct K1 :=
+} with kind_eq_dec n (K1 K2 : kind n): Decision (K1 = K2) by struct K1 := {
   kind_eq_dec 0 (kintv L1 U1) (kintv L2 U2) :=
     let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
     cast_if_and (decide (L1 = L2)) (decide (U1 = U2));
@@ -130,8 +131,7 @@ with kind_eq_dec n (K1 K2 : kind n): Decision (K1 = K2) by struct K1 :=
     let _ : ∀ n, EqDecision (kind n) := kind_eq_dec in
     let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
     cast_if_and (decide (S1 = S2)) (decide (K1 = K2))
-(* } *)
-    .
+}.
 
 Solve All Obligations with eqn_simpl; simplify_eq.
 
