@@ -52,13 +52,13 @@ Inductive kty : nat → Type :=
   | TBot : kty 0
 
   (* | TAnd (T1 T2 : kty 0) : kty 0
-  | TOr (T1 T2 : kty 0): kty 0
-  | kTLater {n} (T : kty n) : kty n *)
+  | TOr (T1 T2 : kty 0): kty 0 *)
+  | kTLater {n} (T : kty n) : kty n
 
   (* | TAll (S T : kty 0) : kty 0 *)
   (* | TMu (T : kty 0) : kty 0
   | TVMem l (T : kty 0) : kty 0 *)
-  (* | kTTMem {n} l (K : kind n) : kty n *)
+  | kTTMem {n} l (K : kind n) : kty n
   (* | kTSel n (v : vl_) l : kty n *)
   (* | TPrim B : kty 0 *)
   (* | TSing (p : path) : kty 0 *)
@@ -72,6 +72,8 @@ Require Import ssreflect.
 
 Require Import Program.
 From Equations Require Import Equations.
+Set Transparent Obligations.
+
 (* From iris.algebra Require Import base. *)
 
 Ltac eqn_simpl := program_simplify; Equations.CoreTactics.equations_simpl;
@@ -81,34 +83,65 @@ Ltac eqn_simpl := program_simplify; Equations.CoreTactics.equations_simpl;
 neg true := false ;
 neg false := true. *)
 Derive Signature for kty kind.
+Derive NoConfusion NoConfusionHom for kty.
+Show Obligation Tactic.
+(* Obligation Tactic := idtac. *)
+
+(* Print dec_eq.
+About dec_eq.
+Print EqDec.
+About EqDec. *)
+(* Derive EqDec for kty kind.
+Derive EqDec for kty.
+
+Next Obligation.
+have : ∀ n, EqDec (kty n). intros. apply _.
+:= !!(_).
+hnf.
+Derive EqDec for kty.
+Instance foo n: EqDec (kty n) := _. *)
+
 (* Solve All Obligations with eqn_simpl. *)
 (* Derive NoConfusion NoConfusionHom for kty.
 Next Obligation. eqn_simpl. simplify_eq. vm_compute. Qed.
 Derive NoConfusion NoConfusionHom for kty kind. *)
 
-    Set Transparent Obligations.
-Equations kty_eq_dec n (T1 T2 : kty n) : Decision (T1 = T2) by struct T1 :=
+Unset Transparent Obligations.
+
+Equations kty_eq_dec n (T1 T2 : kty n) : Decision (T1 = T2) by struct T1 := {
   kty_eq_dec n TTop TTop := left _;
   kty_eq_dec n TBot TBot := left _;
+  kty_eq_dec _ (kTLater T1) (kTLater T2) :=
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if (decide (T1 = T2)) ;
   kty_eq_dec _ (kTLam T1) (kTLam T2) :=
     let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
     cast_if (decide (T1 = T2)) ;
+  kty_eq_dec _ (kTTMem l1 K1) (kTTMem l2 K2) :=
+    let _ : ∀ n, EqDecision (kind n) := kind_eq_dec in
+    cast_if_and (decide (l1 = l2)) (decide (K1 = K2));
   kty_eq_dec _ _ _ := right _
-with
-kind_eq_dec n (K1 K2 : kind n): Decision (K1 = K2) by struct K1 :=
+}
+with kind_eq_dec n (K1 K2 : kind n): Decision (K1 = K2) by struct K1 :=
   kind_eq_dec 0 (kintv L1 U1) (kintv L2 U2) :=
     let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
     cast_if_and (decide (L1 = L2)) (decide (U1 = U2));
   kind_eq_dec n (kpi S1 K1) (kpi S2 K2) :=
-    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
     let _ : ∀ n, EqDecision (kind n) := kind_eq_dec in
-    cast_if_and (decide (S1 = S2)) (decide (K1 = K2)).
-(* Solve All Obligations with eqn_simpl; simplify_eq. *)
-Solve All Obligations with eqn_simpl.
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if_and (decide (S1 = S2)) (decide (K1 = K2))
+(* } *)
+    .
+
+Solve All Obligations with eqn_simpl; simplify_eq.
+
+Existing Instances kty_eq_dec kind_eq_dec.
+
+Solve All Obligations with eqn_simpl; simplify_eq.
 Next Obligation. eqn_simpl; simplify_eq. Defined.
 Next Obligation. eqn_simpl; simplify_eq. Defined.
 Next Obligation. eqn_simpl; simplify_eq. Defined.
-Next Obligation. eqn_simpl. simplify_eq. Qed.
+Next Obligation. eqn_simpl. Defined.
 Next Obligation. eqn_simpl. Qed.
 Next Obligation. eqn_simpl. Qed.
 Next Obligation. eqn_simpl. Qed.
