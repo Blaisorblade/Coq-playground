@@ -1,3 +1,16 @@
+From mathcomp Require Import ssreflect ssrnat eqtype ssrbool seq tuple.
+Import EqNotations.
+
+Print val.
+Print sval.
+Lemma sig_bool_eq {A : Type} {P : A -> bool} (x y: {z | P z}): val x = val y -> x = y.
+Proof. apply val_inj. Restart.
+Proof.
+  case: x y => [x Px] [y Py] /= Hxy; destruct Hxy.
+  apply eq_exist_uncurried. exists (Logic.eq_refl _).
+  apply eq_irrelevance.
+Qed.
+
 Require Import ProofIrrelevance.
 
 Section dep_pair.

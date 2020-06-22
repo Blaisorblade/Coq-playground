@@ -15,23 +15,6 @@ Definition whatever1 {F G} `{SubFunctor F G} := forall A, F A -> G A.
 (* Fails *)
 (* Definition whatever2 {F G} `{ F <=== G } := forall A, F A -> G A. *)
 
-Require Import stdpp.base.
-Section foo2.
-Context `(R: relation A) `{!Reflexive R}.
-Fail Check notExists.
-End foo2.
-Check id.
-Lemma foo {A} (a: A) : a = a. Proof. easy. Qed.
-(* Require Import Omega.
-
-Lemma foo07 (n n0 n1 n2 n3 n4: nat):
-n + (n0 + n1) = 0 ->
-n2 + (n3 + n4) = 0 ->
-n0 + n3 + n + n2 + (n1 + n4) = 0.
-Proof. omega. Qed. *)
-
-(* Require Import Program. *)
-(* Require Import stdpp.vector. *)
 
 Require Coq.Vectors.Vector.
 
@@ -54,6 +37,7 @@ Proof.
     assert (n = n0) as Heqn by now injection HeqSn.
     rewrite Heqn. exact (x, xs).
 Defined.
+
 
 Fixpoint zip {A B n} (xs: Vector.t A n) :
   Vector.t B n -> Vector.t (A * B) n :=
@@ -97,6 +81,25 @@ Lemma foo25 P Q b b' :
   reflect (P /\ Q) (b && b').
 Proof. inversion 1; inversion 1; cbn; constructor; intuition. Qed.
 About reflect.
+
+Require Import stdpp.base.
+Section foo2.
+Context `(R: relation A) `{!Reflexive R}.
+Fail Check notExists.
+End foo2.
+Check id.
+Lemma foo {A} (a: A) : a = a. Proof. easy. Qed.
+(* Require Import Omega.
+
+Lemma foo07 (n n0 n1 n2 n3 n4: nat):
+n + (n0 + n1) = 0 ->
+n2 + (n3 + n4) = 0 ->
+n0 + n3 + n + n2 + (n1 + n4) = 0.
+Proof. omega. Qed. *)
+
+(* Require Import Program. *)
+(* Require Import stdpp.vector. *)
+
 Require Import stdpp.base.
 
 (* Tactic Notation "uapply" uconstr(H) "by" tactic3(tac2) :=

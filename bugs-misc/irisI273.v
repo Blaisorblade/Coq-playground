@@ -1,3 +1,28 @@
+(* From iris.algebra Require Import base.
+From iris.proofmode Require Import tactics.
+From iris.heap_lang Require Import proofmode.
+From iris.heap_lang Require Import array.
+
+Import uPred.
+Section foo.
+Context `{!gen_heapG loc val Σ}.
+Lemma foo r (x x1 : val):
+  r ↦ x -∗ r ↦ x1.
+  (* apply equiv_entails. f_equiv. *)
+  iIntros "H".
+  iRevert "H".
+  iApply equiv_entails.
+  f_equiv.
+
+Qed.
+
+Require Import
+r ↦ (x, x0, x1, x2, x4)
+"H" : r ↦ (x, x0, x1, x2, x4)
+  --------------------------------------∗
+  r ↦ (x, x0, x1, x2, z) *)
+
+
 From iris.algebra Require Import base monoid.
 From iris.algebra Require big_op.
 
