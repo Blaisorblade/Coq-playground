@@ -81,32 +81,10 @@ Set Transparent Obligations.
 
 
 
-(* Equations neg (b : bool) : bool :=
-neg true := false ;
-neg false := true. *)
 Derive Signature for kty kind.
 Derive NoConfusion NoConfusionHom for kty.
 Show Obligation Tactic.
-(* Obligation Tactic := idtac. *)
 
-(* Print dec_eq.
-About dec_eq.
-Print EqDec.
-About EqDec. *)
-(* Derive EqDec for kty kind.
-Derive EqDec for kty.
-
-Next Obligation.
-have : ∀ n, EqDec (kty n). intros. apply _.
-:= !!(_).
-hnf.
-Derive EqDec for kty.
-Instance foo n: EqDec (kty n) := _. *)
-
-(* Solve All Obligations with eqn_simpl. *)
-(* Derive NoConfusion NoConfusionHom for kty.
-Next Obligation. eqn_simpl. simplify_eq. vm_compute. Qed.
-Derive NoConfusion NoConfusionHom for kty kind. *)
 
 Unset Transparent Obligations.
 
@@ -137,148 +115,10 @@ Solve All Obligations with eqn_simpl; simplify_eq.
 
 Existing Instances kty_eq_dec kind_eq_dec.
 
-Solve All Obligations with eqn_simpl; simplify_eq.
-Next Obligation. eqn_simpl; simplify_eq. Defined.
-Next Obligation. eqn_simpl; simplify_eq. Defined.
-Next Obligation. eqn_simpl; simplify_eq. Defined.
-Next Obligation. eqn_simpl. Defined.
-Next Obligation. eqn_simpl. Qed.
-Next Obligation. eqn_simpl. Qed.
-Next Obligation. eqn_simpl. Qed.
-Next Obligation. eqn_simpl. Qed.
-  (* Next Obligation. right; congruence. Qed.
-  Next Obligation. right; congruence. Qed. *)
-Solve All Obligations with try eqn_simpl; simplify_eq.
-Existing Instance kty_eq_dec.
-
-Solve All Obligations with eqn_simpl; simplify_eq.
-Eval cbv in kty_eq_dec _ TTop TTop.
 Eval vm_compute in kty_eq_dec _ TTop TTop.
 (* Eval in kty_eq_dec. *)
 
-Fail Next Obligation.
-  (* Next Obligation. right. inversion T1. Qed. *)
-
-
-match T1 as T3 return T1 = T3 -> Decision (T1 = T2) with
-| TTop => _
-| _ => _
-end eq_refl.
-
-
-Definition disable_tc_search {T : Type} (x : id T) : T := x.
-Notation notc_hole := (disable_tc_search _).
-Unset Program Cases.
-Program Definition kty_eq_dec n (T1 T2 : kty n): Decision (T1 = T2) :=
-match T1 as T3 return T1 = T3 -> Decision (T1 = T2) with
-| TTop => _
-| _ => _
-end eq_refl.
-Next Obligation.
-Admitted.
-Next Obligation.
-Next Obligation.
-Admitted.
-
-
-Instance kty_eq_dec n : EqDecision (kty n).
-revert n.
-refine
-(fix go {n} (T1 T2 : kty n) {struct T1} : Decision (T1 = T2) :=
-match T1 as T3 in kty n0 return Decision (T1 = T2) with
-(* match T1 in kty n0, T2 in kty n0 return Decision (T1 = T2) with *)
-| TTop => notc_hole
-| _ => notc_hole
-(* | TAll S1 T1, TAll S2 T2 => cast_if_and (decide (S1 = S2)) (decide (T1 = T2)) *)
-(* | _, _ => _ *)
-end); rewrite /id.
-
-refine
-(fix go {n} (T1 T2 : kty n) {struct T1} : Decision (T1 = T2) :=
-match T1 as T3 in kty n0, T2 as T4 in kty n0 return Decision (T3 = T4) with
-(* match T1 in kty n0, T2 in kty n0 return Decision (T1 = T2) with *)
-| TTop, TTop => left _
-(* | TBot, TBot => left _ *)
-| _, _ => right _
-(* | TAll S1 T1, TAll S2 T2 => cast_if_and (decide (S1 = S2)) (decide (T1 = T2)) *)
-(* | _, _ => _ *)
-end).
-
-refine
-(fix go {n} (T1 T2 : kty n) {struct T1} : Decision (T1 = T2) :=
-match T1 as T3 in kty n0, T2 as T4 in kty n0 return Decision (T3 = T4) with
-(* match T1 in kty n0, T2 in kty n0 return Decision (T1 = T2) with *)
-| TTop, TTop => left _
-(* | TBot, TBot => left _ *)
-| _, _ => right _
-(* | TAll S1 T1, TAll S2 T2 => cast_if_and (decide (S1 = S2)) (decide (T1 = T2)) *)
-(* | _, _ => _ *)
-end).
-
-as T1o, T2o
-
-clear go; try abstract intuition congruence.
-simplify_eq.
-
-
-Program Fixpoint kty_eq_dec n (T1 T2 : kty n): Decision (T1 = T2) := _.
-
-Next Obligation.
-move: n T1 T2; fix f 2 => n T1 T2.
-destruct T1.
-admit.
-admit.
-admit.
-case: n T1 T2 => [|n] [] []; intros.
-clear f.
-
-match T1 with
-| TTop => left _
-| _ => right _
-(* | TAll S1 T1, TAll S2 T2 => cast_if_and (decide (S1 = S2)) (decide (T1 = T2)) *)
-(* | _, _ => _ *)
-end.
-
-match T1, T2 with
-| TTop, TTop => left _
-| _, _ => right _
-(* | TAll S1 T1, TAll S2 T2 => cast_if_and (decide (S1 = S2)) (decide (T1 = T2)) *)
-(* | _, _ => _ *)
-end.
-
-Program Fixpoint kty_eq_dec n : EqDecision (kty n) :=
-fix go n (T1 T2 : kty n) {struct T1} : Decision (T1 = T2) :=
-match T1, T2 with
-| TTop, TTop => left _
-| TBot, TBot => left _
-| _, _ => right _
-(* | TAll S1 T1, TAll S2 T2 => cast_if_and (decide (S1 = S2)) (decide (T1 = T2)) *)
-(* | _, _ => _ *)
-end.
-
-
-Program Instance kty_eq_dec n : EqDecision (kty n) :=
-fix go {n} (T1 T2 : kty n) {struct T1} : Decision (T1 = T2) :=
-match T1, T2 with
-| TTop, TTop => left _
-| _, _ => right _
-(* | TAll S1 T1, TAll S2 T2 => cast_if_and (decide (S1 = S2)) (decide (T1 = T2)) *)
-(* | _, _ => _ *)
-end.
-
-revert n.
-refine
-(fix go {n} (T1 T2 : kty n) {struct T1} : Decision (T1 = T2) :=
-match T1, T2 with
-| TTop, TTop => left _
-| _, _ => right _
-(* | TAll S1 T1, TAll S2 T2 => cast_if_and (decide (S1 = S2)) (decide (T1 = T2)) *)
-(* | _, _ => _ *)
-end).
-
-
-
-
+End V0.
 
 Inductive tm : Type :=
   | tv : vl_ → tm
@@ -303,7 +143,7 @@ Inductive tm : Type :=
  with dm : Type :=
   | kdtysyn {n} : kty n → dm
   | dtysem : list vl_ → stamp → dm *)
-  (* | dvl : vl_ → dm *).
+  (* | dvl : vl_ → dm *)
 
 
 
@@ -330,6 +170,6 @@ with kind : nat → Type :=
   | kintv (L U : kty 0) : kind 0
   | kpi {n} (S : kty 0) (K : kind n) : kind n.+1.
 
-Instance expr_eq_dec n : EqDecision (kty n).
+(* Instance expr_eq_dec n : EqDecision (kty n). *)
 
 
