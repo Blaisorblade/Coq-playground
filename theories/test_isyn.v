@@ -47,25 +47,37 @@ Definition label := string.
 Definition stamp := positive.
 
 
-(* Inductive base_lit : Set := lint (n : Z) | lbool (b : bool).
+Inductive base_lit : Set := lint (n : Z) | lbool (b : bool).
 Inductive un_op : Set := unot.
 Inductive bin_op : Set := bplus | bminus | btimes | bdiv | blt | ble | beq.
-Inductive base_ty : Set := tint | tbool. *)
-(* (B : base_ty)  *)
-Implicit Types (l : label) (n : nat).
+Inductive base_ty : Set := tint | tbool.
 
-Module V0.
+Instance base_lit_eq_dec : EqDecision base_lit.
+Proof. solve_decision. Defined.
+
+Instance un_op_eq_dec : EqDecision un_op.
+Proof. solve_decision. Defined.
+
+Instance bin_op_eq_dec : EqDecision bin_op.
+Proof. solve_decision. Defined.
+
+Instance base_ty_eq_dec : EqDecision base_ty.
+Proof. solve_decision. Defined.
+
+Implicit Types (l : label) (B : base_ty) (n : nat).
+
+(* Module V0.
 Inductive kty : nat → Type :=
   | TTop : kty 0
   | TBot : kty 0
 
-  (* | TAnd (T1 T2 : kty 0) : kty 0
-  | TOr (T1 T2 : kty 0): kty 0 *)
+  | TAnd (T1 T2 : kty 0) : kty 0
+  | TOr (T1 T2 : kty 0): kty 0
   | kTLater {n} (T : kty n) : kty n
 
-  (* | TAll (S T : kty 0) : kty 0 *)
-  (* | TMu (T : kty 0) : kty 0
-  | TVMem l (T : kty 0) : kty 0 *)
+  | TAll (S T : kty 0) : kty 0
+  | TMu (T : kty 0) : kty 0
+  | TVMem l (T : kty 0) : kty 0
   | kTTMem {n} l (K : kind n) : kty n
   (* | kTSel n (v : vl_) l : kty n *)
   (* | TPrim B : kty 0 *)
@@ -77,23 +89,36 @@ with kind : nat → Type :=
   | kintv (L U : kty 0) : kind 0
   | kpi {n} (S : kty 0) (K : kind n) : kind n.+1.
 
-Set Transparent Obligations.
-
-
-
 Derive Signature for kty kind.
-Derive NoConfusion NoConfusionHom for kty.
-Show Obligation Tactic.
 
-
+Set Transparent Obligations.
+(* Both commands rely on transparent obligations. *)
+Derive NoConfusion for kty kind.
+Derive NoConfusionHom for kty kind.
 Unset Transparent Obligations.
+Fail Next Obligation.
 
 Equations kty_eq_dec n (T1 T2 : kty n) : Decision (T1 = T2) by struct T1 := {
   kty_eq_dec n TTop TTop := left _;
   kty_eq_dec n TBot TBot := left _;
+  kty_eq_dec _ (TAnd T11 T12) (TAnd T21 T22) :=
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if_and (decide (T11 = T21)) (decide (T12 = T22));
+  kty_eq_dec _ (TOr T11 T12) (TOr T21 T22) :=
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if_and (decide (T11 = T21)) (decide (T12 = T22));
   kty_eq_dec _ (kTLater T1) (kTLater T2) :=
     let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
-    cast_if (decide (T1 = T2)) ;
+    cast_if (decide (T1 = T2));
+  kty_eq_dec _ (TAll S1 T1) (TAll S2 T2) :=
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if_and (decide (S1 = S2)) (decide (T1 = T2));
+  kty_eq_dec _ (TMu T1) (TMu T2) :=
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if (decide (T1 = T2));
+  kty_eq_dec _ (TVMem l1 T1) (TVMem l2 T2) :=
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if_and (decide (l1 = l2)) (decide (T1 = T2));
   kty_eq_dec _ (kTLam T1) (kTLam T2) :=
     let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
     cast_if (decide (T1 = T2)) ;
@@ -111,6 +136,7 @@ Equations kty_eq_dec n (T1 T2 : kty n) : Decision (T1 = T2) by struct T1 := {
     cast_if_and (decide (S1 = S2)) (decide (K1 = K2))
 }.
 
+Solve All Obligations with program_simplify; try reflexivity.
 Solve All Obligations with eqn_simpl; simplify_eq.
 
 Existing Instances kty_eq_dec kind_eq_dec.
@@ -118,58 +144,153 @@ Existing Instances kty_eq_dec kind_eq_dec.
 Eval vm_compute in kty_eq_dec _ TTop TTop.
 (* Eval in kty_eq_dec. *)
 
-End V0.
+End V0. *)
 
 Inductive tm : Type :=
   | tv : vl_ → tm
   | tapp : tm → tm → tm
-(*
+
   | tproj : tm → label → tm
   | tskip : tm → tm
 
   | tun : un_op → tm → tm
   | tbin : bin_op → tm → tm → tm
   | tif : tm → tm → tm → tm
-
-  a *)
-
-
  with vl_ : Type :=
   | vvar : var → vl_
-  (* | vlit : base_lit → vl_ *)
+  | vlit : base_lit → vl_
   | vabs : tm → vl_
-  (* | vobj : list (label * dm) → vl_
+  (* | vobj : list (label * dm) → vl_ *)
 
  with dm : Type :=
   | kdtysyn {n} : kty n → dm
-  | dtysem : list vl_ → stamp → dm *)
-  (* | dvl : vl_ → dm *)
+  | dtysem : list vl_ → stamp → dm
+  | dvl : vl_ → dm
 
 
 
- (* with path : Type :=
+ with path : Type :=
   | pv : vl_ → path
-  | pself : path → label → path *)
+  | pself : path → label → path
 
  with kty : nat → Type :=
-  (* | TTop : kty 0
-  | TBot : kty 0 *)
-  (* | TAnd (T1 T2 : kty 0) : kty 0
+  | TTop : kty 0
+  | TBot : kty 0
+
+  | TAnd (T1 T2 : kty 0) : kty 0
   | TOr (T1 T2 : kty 0): kty 0
-  | kTLater {n} (T : kty n) : kty n *)
+  | kTLater {n} (T : kty n) : kty n
+
   | TAll (S T : kty 0) : kty 0
-  (* | TMu (T : kty 0) : kty 0
-  | TVMem l (T : kty 0) : kty 0 *)
+  | TMu (T : kty 0) : kty 0
+  | TVMem l (T : kty 0) : kty 0
   | kTTMem {n} l (K : kind n) : kty n
   | kTSel n (v : vl_) l : kty n
-  (* | TPrim B : kty 0 *)
-  (* | TSing (p : path) : kty 0 *)
+  | TPrim B : kty 0
+  | TSing (p : path) : kty 0
   | kTLam {n} (T : kty n) : kty n.+1
   | kTApp {n} (T : kty n.+1) (v : vl_) : kty n
 with kind : nat → Type :=
   | kintv (L U : kty 0) : kind 0
   | kpi {n} (S : kty 0) (K : kind n) : kind n.+1.
 
-(* Instance expr_eq_dec n : EqDecision (kty n). *)
+Definition vl := vl_.
+Implicit Types
+         (v : vl) (t : tm) (d : dm) (p : path).
+         (*  (ds : dms) .
+         (Γ : ctx). *)
+
+Section eqdec.
+Context `{dmEqDec : EqDecision dm}.
+Lemma vl_eq_dec v1 v2   : Decision (v1 = v2)
+(* with  dm_eq_dec d1 d2   : Decision (d1 = d2) *)
+with  tm_eq_dec t1 t2   : Decision (t1 = t2)
+with  path_eq_dec p1 p2 : Decision (p1 = p2).
+Proof.
+(* using dmEqDec. *)
+  all: have vl_eq_dec' : EqDecision vl := vl_eq_dec;
+    (* have dm_eq_dec' : EqDecision dm := dm_eq_dec; *)
+    rewrite /Decision; try decide equality; try solve_decision.
+Defined.
+End eqdec.
+Global Instance tm_eq_dec'   : EqDecision tm   := tm_eq_dec.
+Global Instance vl_eq_dec'   : EqDecision vl   := vl_eq_dec.
+Global Instance path_eq_dec' : EqDecision path := path_eq_dec.
+
+(* Instance dm_eq_dec'   : EqDecision dm   := dm_eq_dec. *)
+Derive Signature for kty kind.
+Set Equations Transparent.
+
+Equations kty_eq_dec n (T1 T2 : kty n) : Decision (T1 = T2) by struct T1 := {
+  kty_eq_dec n TTop TTop := left _;
+  kty_eq_dec n TBot TBot := left _;
+  kty_eq_dec _ (TAnd T11 T12) (TAnd T21 T22) :=
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if_and (decide (T11 = T21)) (decide (T12 = T22));
+  kty_eq_dec _ (TOr T11 T12) (TOr T21 T22) :=
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if_and (decide (T11 = T21)) (decide (T12 = T22));
+  kty_eq_dec _ (kTLater T1) (kTLater T2) :=
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if (decide (T1 = T2));
+  kty_eq_dec _ (TAll S1 T1) (TAll S2 T2) :=
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if_and (decide (S1 = S2)) (decide (T1 = T2));
+  kty_eq_dec _ (TMu T1) (TMu T2) :=
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if (decide (T1 = T2));
+  kty_eq_dec _ (TVMem l1 T1) (TVMem l2 T2) :=
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if_and (decide (l1 = l2)) (decide (T1 = T2));
+  kty_eq_dec _ (kTTMem l1 K1) (kTTMem l2 K2) :=
+    let _ : ∀ n, EqDecision (kind n) := kind_eq_dec in
+    cast_if_and (decide (l1 = l2)) (decide (K1 = K2));
+  kty_eq_dec _ (kTSel _ v1 l1) (kTSel _ v2 l2) :=
+    let _ : EqDecision dm := dm_eq_dec in
+    cast_if_and (decide (v1 = v2)) (decide (l1 = l2)) ;
+  kty_eq_dec _ (TPrim B1) (TPrim B2) :=
+    cast_if (decide (B1 = B2));
+  kty_eq_dec _ (TSing p1) (TSing p2) :=
+    let _ : EqDecision dm := dm_eq_dec in
+    cast_if (decide (p1 = p2));
+  kty_eq_dec _ (kTLam T1) (kTLam T2) :=
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if (decide (T1 = T2)) ;
+  kty_eq_dec _ (kTApp T1 v1) (kTApp T2 v2) :=
+    let _ : EqDecision dm := dm_eq_dec in
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if_and (decide (T1 = T2)) (decide (v1 = v2));
+  kty_eq_dec _ _ _ := right _
+} with kind_eq_dec n (K1 K2 : kind n): Decision (K1 = K2) by struct K1 := {
+  kind_eq_dec 0 (kintv L1 U1) (kintv L2 U2) :=
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if_and (decide (L1 = L2)) (decide (U1 = U2));
+  kind_eq_dec n (kpi S1 K1) (kpi S2 K2) :=
+    let _ : ∀ n, EqDecision (kind n) := kind_eq_dec in
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if_and (decide (S1 = S2)) (decide (K1 = K2))
+}
+with dm_eq_dec (d1 d2 : dm) : Decision (d1 = d2) by struct d1 := {
+  dm_eq_dec (dtysem σ1 s1) (dtysem σ2 s2) :=
+    let _ : EqDecision dm := dm_eq_dec in
+    cast_if_and (decide (σ1 = σ2)) (decide (s1 = s2));
+  dm_eq_dec (dvl v1) (dvl v2) :=
+    let _ : EqDecision dm := dm_eq_dec in
+    cast_if (decide (v1 = v2));
+  dm_eq_dec (kdtysyn (n := n1) T1) (kdtysyn (n := n2) T2) with decide (n1 = n2) => {
+    | left eq_refl =>
+    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+    cast_if (decide (T1 = T2));
+    | in_right => right _
+  };
+  dm_eq_dec _ _ := right _
+}.
+
+Solve All Obligations with program_simplify; try reflexivity.
+Solve All Obligations with program_simplify; intro; simplify_eq.
+
+Existing Instances kty_eq_dec kind_eq_dec dm_eq_dec.
 
 
+Eval vm_compute in kty_eq_dec _ (kTLam TTop) (kTLam TTop).
+Eval vm_compute in kty_eq_dec _ TTop TTop.
