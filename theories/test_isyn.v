@@ -127,7 +127,7 @@ Derive NoConfusion for kty kind.
 Derive NoConfusionHom for kty kind.
 Unset Transparent Obligations.
 
-Equations vl_eq_dec v1 v2   : Decision (v1 = v2) by struct v1 := {
+Equations(noind) vl_eq_dec v1 v2   : Decision (v1 = v2) by struct v1 := {
   vl_eq_dec v1 v2 :=
     let _ : EqDecision dm := dm_eq_dec in (* Objects *)
     let _ : EqDecision tm := tm_eq_dec in (* Lambdas *)
