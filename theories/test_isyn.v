@@ -214,7 +214,7 @@ Solve All Obligations with program_simplify; try (intro; simplify_eq).
 Next Obligation. by elim. Defined.
 Next Obligation. by elim. Defined.
 
-Existing Instances kty_eq_dec kind_eq_dec dm_eq_dec.
+Existing Instances kty_eq_dec kind_eq_dec dm_eq_dec vl_eq_dec tm_eq_dec path_eq_dec.
 
 
 
