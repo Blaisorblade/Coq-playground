@@ -66,86 +66,6 @@ Proof. solve_decision. Defined.
 
 Implicit Types (l : label) (B : base_ty) (n : nat).
 
-(* Module V0.
-Inductive kty : nat → Type :=
-  | TTop : kty 0
-  | TBot : kty 0
-
-  | TAnd (T1 T2 : kty 0) : kty 0
-  | TOr (T1 T2 : kty 0): kty 0
-  | kTLater {n} (T : kty n) : kty n
-
-  | TAll (S T : kty 0) : kty 0
-  | TMu (T : kty 0) : kty 0
-  | TVMem l (T : kty 0) : kty 0
-  | kTTMem {n} l (K : kind n) : kty n
-  (* | kTSel n (v : vl_) l : kty n *)
-  (* | TPrim B : kty 0 *)
-  (* | TSing (p : path) : kty 0 *)
-  | kTLam {n} (T : kty n) : kty n.+1
-  (* | kTApp {n} (T : kty n.+1) (v : vl_) : kty n *)
-
-with kind : nat → Type :=
-  | kintv (L U : kty 0) : kind 0
-  | kpi {n} (S : kty 0) (K : kind n) : kind n.+1.
-
-Derive Signature for kty kind.
-
-Set Transparent Obligations.
-(* Both commands rely on transparent obligations. *)
-Derive NoConfusion for kty kind.
-Derive NoConfusionHom for kty kind.
-Unset Transparent Obligations.
-Fail Next Obligation.
-
-Equations kty_eq_dec n (T1 T2 : kty n) : Decision (T1 = T2) by struct T1 := {
-  kty_eq_dec n TTop TTop := left _;
-  kty_eq_dec n TBot TBot := left _;
-  kty_eq_dec _ (TAnd T11 T12) (TAnd T21 T22) :=
-    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
-    cast_if_and (decide (T11 = T21)) (decide (T12 = T22));
-  kty_eq_dec _ (TOr T11 T12) (TOr T21 T22) :=
-    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
-    cast_if_and (decide (T11 = T21)) (decide (T12 = T22));
-  kty_eq_dec _ (kTLater T1) (kTLater T2) :=
-    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
-    cast_if (decide (T1 = T2));
-  kty_eq_dec _ (TAll S1 T1) (TAll S2 T2) :=
-    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
-    cast_if_and (decide (S1 = S2)) (decide (T1 = T2));
-  kty_eq_dec _ (TMu T1) (TMu T2) :=
-    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
-    cast_if (decide (T1 = T2));
-  kty_eq_dec _ (TVMem l1 T1) (TVMem l2 T2) :=
-    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
-    cast_if_and (decide (l1 = l2)) (decide (T1 = T2));
-  kty_eq_dec _ (kTLam T1) (kTLam T2) :=
-    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
-    cast_if (decide (T1 = T2)) ;
-  kty_eq_dec _ (kTTMem l1 K1) (kTTMem l2 K2) :=
-    let _ : ∀ n, EqDecision (kind n) := kind_eq_dec in
-    cast_if_and (decide (l1 = l2)) (decide (K1 = K2));
-  kty_eq_dec _ _ _ := right _
-} with kind_eq_dec n (K1 K2 : kind n): Decision (K1 = K2) by struct K1 := {
-  kind_eq_dec 0 (kintv L1 U1) (kintv L2 U2) :=
-    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
-    cast_if_and (decide (L1 = L2)) (decide (U1 = U2));
-  kind_eq_dec n (kpi S1 K1) (kpi S2 K2) :=
-    let _ : ∀ n, EqDecision (kind n) := kind_eq_dec in
-    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
-    cast_if_and (decide (S1 = S2)) (decide (K1 = K2))
-}.
-
-Solve All Obligations with program_simplify; try reflexivity.
-Solve All Obligations with eqn_simpl; simplify_eq.
-
-Existing Instances kty_eq_dec kind_eq_dec.
-
-Eval vm_compute in kty_eq_dec _ TTop TTop.
-(* Eval in kty_eq_dec. *)
-
-End V0. *)
-
 Inductive tm : Type :=
   | tv : vl_ → tm
   | tapp : tm → tm → tm
@@ -200,24 +120,6 @@ Implicit Types
          (*  (ds : dms) .
          (Γ : ctx). *)
 
-(* Section eqdec.
-Context `{dmEqDec : EqDecision dm}.
-Lemma vl_eq_dec v1 v2   : Decision (v1 = v2)
-(* with  dm_eq_dec d1 d2   : Decision (d1 = d2) *)
-with  tm_eq_dec t1 t2   : Decision (t1 = t2)
-with  path_eq_dec p1 p2 : Decision (p1 = p2).
-Proof.
-(* using dmEqDec. *)
-  all: have vl_eq_dec' : EqDecision vl := vl_eq_dec;
-    (* have dm_eq_dec' : EqDecision dm := dm_eq_dec; *)
-    rewrite /Decision; try decide equality; try solve_decision.
-Defined.
-End eqdec.
-Global Instance tm_eq_dec'   : EqDecision tm   := tm_eq_dec.
-Global Instance vl_eq_dec'   : EqDecision vl   := vl_eq_dec.
-Global Instance path_eq_dec' : EqDecision path := path_eq_dec. *)
-
-(* Instance dm_eq_dec'   : EqDecision dm   := dm_eq_dec. *)
 Derive Signature for kty kind.
 Set Equations Transparent.
 
