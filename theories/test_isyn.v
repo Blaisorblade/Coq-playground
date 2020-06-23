@@ -129,8 +129,8 @@ Unset Transparent Obligations.
 
 Equations vl_eq_dec v1 v2   : Decision (v1 = v2) by struct v1 := {
   vl_eq_dec v1 v2 :=
-    let _ : EqDecision dm := dm_eq_dec in
-    let _ : EqDecision vl := vl_eq_dec in
+    let _ : EqDecision dm := dm_eq_dec in (* Objects *)
+    let _ : EqDecision tm := tm_eq_dec in (* Lambdas *)
     ltac:(rewrite /Decision; decide equality; solve_decision)
 }
 with  tm_eq_dec t1 t2   : Decision (t1 = t2) by struct t1 := {
