@@ -121,7 +121,6 @@ Implicit Types
          (Γ : ctx). *)
 
 Derive Signature for kty kind.
-Set Equations Transparent.
 
 Equations vl_eq_dec v1 v2   : Decision (v1 = v2) by struct v1 := {
   vl_eq_dec v1 v2 :=
