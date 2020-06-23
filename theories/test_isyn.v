@@ -126,6 +126,8 @@ Set Transparent Obligations.
 Derive NoConfusion for kty kind.
 Derive NoConfusionHom for kty kind.
 Unset Transparent Obligations.
+Definition disable_tc_search {T : Type} (x : id T) : T := x.
+Notation notc_hole := (disable_tc_search _).
 
 Equations(noeqns noind) vl_eq_dec v1 v2   : Decision (v1 = v2) by struct v1 := {
   vl_eq_dec v1 v2 :=
