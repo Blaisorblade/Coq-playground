@@ -104,7 +104,7 @@ Inductive tm : Type :=
   | TAll (S T : kty 0) : kty 0
   | TMu (T : kty 0) : kty 0
   | TVMem l (T : kty 0) : kty 0
-  | kTTMem {n} l (K : kind n) : kty n
+  | kTTMem {n} l (K : kind n) : kty 0
   | kTSel n (v : vl_) l : kty n
   | TPrim B : kty 0
   | TSing (p : path) : kty 0
@@ -167,9 +167,12 @@ kty_eq_dec n (T1 T2 : kty n) : Decision (T1 = T2) by struct T1 := {
   kty_eq_dec _ (TVMem l1 T1) (TVMem l2 T2) :=
     let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
     cast_if_and (decide (l1 = l2)) (decide (T1 = T2));
-  kty_eq_dec _ (kTTMem l1 K1) (kTTMem l2 K2) :=
-    let _ : ∀ n, EqDecision (kind n) := kind_eq_dec in
-    cast_if_and (decide (l1 = l2)) (decide (K1 = K2));
+  kty_eq_dec _ (kTTMem (n := n1) l1 K1) (kTTMem (n := n2) l2 K2) with decide (n1 = n2) => {
+    | left eq_refl =>
+      let _ : ∀ n, EqDecision (kind n) := kind_eq_dec in
+      cast_if_and (decide (l1 = l2)) (decide (K1 = K2));
+    | in_right => right _
+  };
   kty_eq_dec _ (kTSel _ v1 l1) (kTSel _ v2 l2) :=
     let _ : EqDecision vl := vl_eq_dec in
     cast_if_and (decide (v1 = v2)) (decide (l1 = l2)) ;
