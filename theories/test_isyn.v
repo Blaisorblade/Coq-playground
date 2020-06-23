@@ -121,6 +121,11 @@ Implicit Types
          (Γ : ctx). *)
 
 Derive Signature for kty kind.
+Set Transparent Obligations.
+(* Both commands rely on transparent obligations. *)
+Derive NoConfusion for kty kind.
+Derive NoConfusionHom for kty kind.
+Unset Transparent Obligations.
 
 Equations vl_eq_dec v1 v2   : Decision (v1 = v2) by struct v1 := {
   vl_eq_dec v1 v2 :=
