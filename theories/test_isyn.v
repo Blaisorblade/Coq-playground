@@ -219,35 +219,9 @@ Next Obligation. by elim. Defined. *)
 
 Existing Instances kty_eq_dec kind_eq_dec dm_eq_dec vl_eq_dec tm_eq_dec path_eq_dec.
 
-(* Print path_eq_dec_functional.
-Print tm_eq_dec_functional.
-Print kty_eq_dec_functional. *)
 
-
-(* Print Rewrite HintDb vl_eq_dec. *)
-Goal ∃ x, kty_eq_dec _ TTop TBot = right x.
-Proof.
-by eexists.
-Qed.
 
 Goal ∃ x, kty_eq_dec _ TTop TTop = left x.
-Proof.
-eexists.
-cbn.
-cbv.
-Time simp vl_eq_dec.
-(* rewrite_strat innermost(hints vl_eq_dec). *)
-(* by autorewrite with vl_eq_dec. *)
-by [].
-Qed.
-(* Print Unnamed_thm. *)
-
-(* Time simp vl_eq_dec. Qed. *)
+Proof. by eexists. Qed.
 Goal ∃ x, kty_eq_dec _ (kTLam TTop) (kTLam TTop) = left x.
-Proof.
-by eexists.
-(* rewrite_strat innermost(hints vl_eq_dec). *)
-(* by autorewrite with vl_eq_dec. *)
-(* by eexists. *)
-Qed.
-(* Print Unnamed_thm0. *)
+Proof. by eexists. Qed.
