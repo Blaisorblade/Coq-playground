@@ -311,5 +311,8 @@ Next Obligation. by elim. Defined.
 Existing Instances kty_eq_dec kind_eq_dec dm_eq_dec.
 
 
-Eval vm_compute in kty_eq_dec _ (kTLam TTop) (kTLam TTop).
-Eval vm_compute in kty_eq_dec _ TTop TTop.
+
+Goal ∃ x, kty_eq_dec _ TTop TTop = left x.
+Proof. by eexists. Qed.
+Goal ∃ x, kty_eq_dec _ (kTLam TTop) (kTLam TTop) = left x.
+Proof. by eexists. Qed.
