@@ -204,8 +204,8 @@ with dm_eq_dec (d1 d2 : dm) : Decision (d1 = d2) by struct d1 := {
     cast_if (decide (v1 = v2));
   dm_eq_dec (kdtysyn (n := n1) T1) (kdtysyn (n := n2) T2) with decide (n1 = n2) => {
     | left eq_refl =>
-    let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
-    cast_if (decide (T1 = T2));
+      let _ : ∀ n, EqDecision (kty n) := kty_eq_dec in
+      cast_if (decide (T1 = T2));
     | in_right => right _
   };
   dm_eq_dec _ _ := right _
