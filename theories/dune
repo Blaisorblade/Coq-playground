@@ -20,5 +20,7 @@
    ; -w -undeclared-scope
    ; We have ambiguous paths and so far it is not even clear what they are (https://gitlab.mpi-sws.org/iris/iris/issues/240).
    -w -ambiguous-paths
+   ; argh
+   -w -solve_obligation_error
    )
 ))
